@@ -80,7 +80,7 @@ def to3dsurface(px, py, pz):
             k += 1
 
     for i in xrange(px.shape[0]-1):
-        for j in xrange(px.shape[1]):
+        for j in xrange(px.shape[1] - 1):
             faces.append((i*px.shape[1] + j, i*px.shape[1] + j + 1, (i+1)*px.shape[1] + j))
             faces.append((i*px.shape[1] + j + 1, (i+1)*px.shape[1] + j + 1, (i+1)*px.shape[1] + j))
 
