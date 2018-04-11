@@ -1,4 +1,7 @@
+from __future__ import print_function
+
 import sys
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -10,8 +13,8 @@ import ply_writer
 def img2points(img):
     bw_img = (img > 127) * 1
     points = []
-    for y in xrange(bw_img.shape[0]):
-        for x in xrange(bw_img.shape[1]):
+    for y in range(bw_img.shape[0]):
+        for x in range(bw_img.shape[1]):
             if bw_img[y, x]:
                 points.append((x, y))
                 break
@@ -57,7 +60,7 @@ def interpolate_curve(px1, py1, px2, py2, z):
 
     t = np.array((0.0, 1.0))
 
-    for i in xrange(px1.shape[0]):
+    for i in range(px1.shape[0]):
         fx = interpolate.CubicSpline(t, np.array((px1[i], px2[i])))
         fy = interpolate.CubicSpline(t, np.array((py1[i], py2[i])))
 
@@ -71,16 +74,16 @@ def to3dsurface(px, py, pz):
     points = np.zeros(shape=(px.size, 3))
     faces = []
     k = 0
-    for i in xrange(px.shape[0]):
-        for j in xrange(px.shape[1]):
+    for i in range(px.shape[0]):
+        for j in range(px.shape[1]):
             x = px[i, j]
             y = py[i, j]
             z = pz[i]
             points[k] = x, y, z
             k += 1
 
-    for i in xrange(px.shape[0]-1):
-        for j in xrange(px.shape[1] - 1):
+    for i in range(px.shape[0]-1):
+        for j in range(px.shape[1] - 1):
             faces.append((i*px.shape[1] + j, i*px.shape[1] + j + 1, (i+1)*px.shape[1] + j))
             faces.append((i*px.shape[1] + j + 1, (i+1)*px.shape[1] + j + 1, (i+1)*px.shape[1] + j))
 
@@ -92,17 +95,15 @@ def main():
     points1[:, 0] = points1[:, 0] / float(img1.shape[1])
     points1[:, 1] = points1[:, 1] / float(img1.shape[0])
 
-    print points1
-
     img2 = imread(sys.argv[2])[:, :, 0]
     points2 = np.array(img2points(img2), dtype='float64')
     points2[:, 0] = points2[:, 0] / float(img2.shape[1])
     points2[:, 1] = points2[:, 1] / float(img2.shape[0])
 
-    npx1, npy1 = normalize_curve(points1, 100)
-    npx2, npy2 = normalize_curve(points2, 100)
+    npx1, npy1 = normalize_curve(points1, 50)
+    npx2, npy2 = normalize_curve(points2, 50)
 
-    npz3 = np.linspace(0, 1, 100)
+    npz3 = np.linspace(0, 1, 50)
     npx3, npy3 = interpolate_curve(npx1, npy1, npx2, npy2, npz3)
 
     points, faces = to3dsurface(npx3, npy3, npz3)
@@ -111,7 +112,7 @@ def main():
     writer.from_faces_vertices_list(faces, points)
     plt.plot(npx1, npy1, label='curve 1')
     plt.plot(npx2, npy2, label='curve 2')
-    for i in xrange(10):
+    for i in range(10):
         plt.plot(npx3[i], npy3[i], label='curve %d' % i)
     plt.show()
 

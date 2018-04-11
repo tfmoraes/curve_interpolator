@@ -30,7 +30,7 @@ class PlyWriter(object):
         ply_file.write('end_header\n')
 
     def from_faces_vertices_list(self, faces, vertices, vnormals=None, colours=None):
-        with file(self.filename, 'w') as ply_file:
+        with open(self.filename, 'w') as ply_file:
             self._write_header(ply_file, len(vertices), len(faces), vnormals is not None, colours is not None)
             for k, v in enumerate(vertices):
                 if vnormals is not None:
