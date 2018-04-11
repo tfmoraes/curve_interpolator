@@ -5,6 +5,8 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
+from matplotlib import animation
+from optparse import OptionParser
 from scipy import interpolate
 from scipy.misc import imread
 
@@ -89,32 +91,69 @@ def to3dsurface(px, py, pz):
 
     return points, np.array(faces)
 
+
+def animate_and_savegif(px, py, nframes, filename):
+    def init():
+        line.set_data([], [])
+        return (line,)
+
+    def animate(i):
+        line.set_data(px[i], py[i])
+        return (line,)
+
+    fig, ax = plt.subplots()
+    ax.axis('off')
+    ax.set_xlim((0, 1))
+    ax.set_ylim((0, 1))
+    line, = ax.plot([], [])
+    anim = animation.FuncAnimation(fig, animate, init_func=init,
+                                   frames=nframes, interval=0.001, blit=True)
+    anim.save(filename, writer='imagemagick')
+
+
+def parse_cmdline():
+    parser = OptionParser()
+    parser.add_option('-i', dest='init_curve', help='first curve image')
+    parser.add_option('-e', dest='end_curve', help='last curve image')
+    parser.add_option('-o', dest='output', help='name of the output file may be a ply (mesh) or gif (animation)')
+    parser.add_option('-n', dest='interp_curves', default=50,
+                      type = "int", help='number of interpolated curve')
+    parser.add_option('-c', dest='curve_size', default=50,
+                      type = "int", help='number of points inside each curve')
+    options, args = parser.parse_args()
+    return options
+
+
 def main():
-    img1 = imread(sys.argv[1])[:, :, 0]
+    options = parse_cmdline()
+
+    img1 = imread(options.init_curve)[:, :, 0]
     points1 = np.array(img2points(img1), dtype='float64')
     points1[:, 0] = points1[:, 0] / float(img1.shape[1])
     points1[:, 1] = points1[:, 1] / float(img1.shape[0])
 
-    img2 = imread(sys.argv[2])[:, :, 0]
+    img2 = imread(options.end_curve)[:, :, 0]
     points2 = np.array(img2points(img2), dtype='float64')
     points2[:, 0] = points2[:, 0] / float(img2.shape[1])
     points2[:, 1] = points2[:, 1] / float(img2.shape[0])
 
-    npx1, npy1 = normalize_curve(points1, 50)
-    npx2, npy2 = normalize_curve(points2, 50)
+    curve_size = options.curve_size
+    npx1, npy1 = normalize_curve(points1, curve_size)
+    npx2, npy2 = normalize_curve(points2, curve_size)
 
-    npz3 = np.linspace(0, 1, 50)
+    ncurves = options.interp_curves + 2
+    npz3 = np.linspace(0, 1, ncurves)
     npx3, npy3 = interpolate_curve(npx1, npy1, npx2, npy2, npz3)
 
-    points, faces = to3dsurface(npx3, npy3, npz3)
-
-    writer = ply_writer.PlyWriter(sys.argv[3])
-    writer.from_faces_vertices_list(faces, points)
-    plt.plot(npx1, npy1, label='curve 1')
-    plt.plot(npx2, npy2, label='curve 2')
-    for i in range(10):
-        plt.plot(npx3[i], npy3[i], label='curve %d' % i)
-    plt.show()
+    output = options.output
+    if output.endswith('.ply'):
+        points, faces = to3dsurface(npx3, npy3, npz3)
+        writer = ply_writer.PlyWriter(output)
+        writer.from_faces_vertices_list(faces, points)
+    elif output.endswith('.gif'):
+        animate_and_savegif(npx3, npy3, ncurves, output)
+    else:
+        print('Please, pass a ply or gif name file')
 
 if __name__ == "__main__":
     main()

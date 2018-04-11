@@ -1,7 +1,9 @@
 Just pass the two binary images and the PLY mesh filename output as parameters. Example:
 
-    python curve_interpolator.py samples/1.png samples/2.png /tmp/manolo.ply
+    python3 curve_interpolator.py -i samples/1.png -e samples/4.png -o /tmp/manolo.ply -n 120 -c 200
 
-It'll generate 98 curve between the two passed by parameters.
+*-i* and *-e* indicates the first and the last curve, *-n* indicates the number of curves to be interpolated and *-c* indicates the number of points to each curve.
 
-TODO Add a option to set the number of curves to interpolate.
+You can also generates a gif file with the animation of the first curve morphing to the last curve. Above a sample of a generated gif file:
+
+![output_gif](samples/slices_morphing.gif)
